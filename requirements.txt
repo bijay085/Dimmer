@@ -1,0 +1,17 @@
+# Screen Dimmer - Python Package Requirements
+# Install with: pip install -r requirements.txt
+
+# GUI Framework - Required
+PyQt5>=5.15.0
+
+# Global Hotkey Support - Optional but recommended
+# Without this, hotkeys (Alt+D, Alt+R, Alt+G) only work when app window is focused
+keyboard>=0.13.5
+
+# Note: Python 3.7 or higher is required
+# Standard library modules used (no installation needed):
+# - sys
+# - json
+# - dataclasses
+# - typing
+# - datetime

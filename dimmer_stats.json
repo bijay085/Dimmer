@@ -1,0 +1,20 @@
+{
+  "current_dim": 33,
+  "dimmer_active": true,
+  "blue_light_active": false,
+  "blue_intensity": 50,
+  "second_display_enabled": false,
+  "second_display_dim": 25,
+  "second_display_blue_light": false,
+  "second_display_blue_intensity": 50,
+  "schedule_enabled": false,
+  "schedule_time_set": false,
+  "schedule_dim_value": 70,
+  "start_time": null,
+  "end_time": null,
+  "blinker_active": false,
+  "emoji_blink_enabled": false,
+  "text_blink_enabled": true,
+  "rain_interval_minutes": 10,
+  "rain_duration_seconds": 7
+}
