@@ -18,6 +18,14 @@ A powerful and user-friendly screen dimming application for Windows with blue li
 ## 📋 Requirements
 
 - **Operating System**: Windows 10 or later
+
+### For EXE File (Standalone):
+- **No additional requirements!** Just download and run
+- No Python installation needed
+- No package installation needed
+- Everything is bundled in the EXE file
+
+### For PYW/PY Files:
 - **Python**: Python 3.7 or higher
 - **Required Python Packages**:
   - `PyQt5` - For the user interface
@@ -34,9 +42,11 @@ If you don't have Python installed:
 2. During installation, check "Add Python to PATH"
 3. Complete the installation
 
-### Step 2: Install Required Packages
+### Step 2: Install Required Packages (Only for PYW/PY files)
 
-Open Command Prompt or PowerShell and run:
+**Skip this step if you're using the EXE file!**
+
+If you're using `dimmer.pyw` or `dimmer.py`, open Command Prompt or PowerShell and run:
 
 ```bash
 pip install PyQt5 keyboard
@@ -46,31 +56,88 @@ pip install PyQt5 keyboard
 
 ### Step 3: Download the Application
 
-1. Download `dimmer.py` to a folder on your computer (e.g., `C:\ScreenDimmer\`)
-2. That's it! No complex installation needed.
+You have **three options** to run Screen Dimmer:
+
+**Option A: Standalone EXE (Easiest - No Python Required!)**
+- Download `ScreenDimmer.exe` 
+- **No Python installation needed!**
+- Just double-click and run
+- Perfect for users who don't want to install Python
+
+**Option B: Python Script (PYW) - Great for System Tray!**
+- Download `dimmer.pyw` 
+- Runs without showing a command window (perfect for background use)
+- Easy to keep running in system tray
+- Requires Python installed (see Step 1)
+- Double-click to run silently - perfect for auto-starting
+- Best choice if you want it running all the time in the background
+
+**Option C: Python Script (PY)**
+- Download `dimmer.py`
+- Requires Python installed (see Step 1)
+- Shows command window when running
+- Best for debugging
+
+**Recommendations**:
+- **EXE file** - Simplest if you don't want to install Python
+- **PYW file** - Best for system tray and background use (easy after installing dependencies once)
+- **PY file** - Best for debugging or seeing console output
 
 ---
 
 ## 🎮 How to Run
 
-### Method 1: Double-Click (Easiest)
+### Method 1: Standalone EXE (Recommended - No Python Needed!)
 
-1. Navigate to the folder where you saved `dimmer.py`
-2. Double-click `dimmer.py`
-3. If Windows asks what program to use, select Python
+1. Download `ScreenDimmer.exe`
+2. Double-click `ScreenDimmer.exe`
+3. That's it! The app will start immediately
+4. **No Python installation required!**
 
-### Method 2: Command Line
+**Note**: Windows may show a security warning the first time you run it. Click "More info" → "Run anyway" if you trust the file.
+
+### Method 2: Python Windowless Script (PYW) - Perfect for System Tray!
+
+1. Download `dimmer.pyw`
+2. Make sure Python is installed (see Installation Step 1)
+3. Install dependencies: `pip install PyQt5 keyboard` (see Installation Step 2)
+4. Double-click `dimmer.pyw`
+5. The app runs silently without showing a command window
+6. **Perfect for keeping it running in the system tray!**
+7. You can add it to Windows startup for automatic launch
+
+**Tip**: After installing dependencies once, PYW files are very easy to use - just double-click and it runs in the background!
+
+### Method 3: Python Script (PY)
+
+1. Download `dimmer.py`
+2. Make sure Python is installed (see Installation Step 1)
+3. Install dependencies: `pip install PyQt5 keyboard` (see Installation Step 2)
+4. Double-click `dimmer.py` or run from command line: `python dimmer.py`
+5. Shows command window (useful for debugging)
+
+### Method 4: Command Line (For PY/PYW files)
 
 1. Open Command Prompt or PowerShell
 2. Navigate to the folder: `cd C:\ScreenDimmer` (or your folder path)
-3. Run: `python dimmer.py`
+3. Run: 
+   - For `.py`: `python dimmer.py`
+   - For `.pyw`: `pythonw dimmer.pyw` (no window)
 
-### Method 3: Create a Shortcut (Recommended)
+### Method 5: Create a Shortcut (For EXE/PYW/PY files)
 
-1. Right-click `dimmer.py`
+**For EXE file:**
+1. Right-click `ScreenDimmer.exe`
+2. Select "Create shortcut"
+3. Double-click the shortcut anytime to run!
+
+**For PYW/PY files:**
+1. Right-click `dimmer.pyw` or `dimmer.py`
 2. Select "Create shortcut"
 3. Right-click the shortcut → Properties
-4. In "Target", add `python` before the path: `python "C:\ScreenDimmer\dimmer.py"`
+4. In "Target", add `python` or `pythonw` before the path:
+   - For `.py`: `python "C:\ScreenDimmer\dimmer.py"`
+   - For `.pyw`: `pythonw "C:\ScreenDimmer\dimmer.pyw"`
 5. Click OK
 6. Double-click the shortcut anytime to run!
 
@@ -258,7 +325,11 @@ The app runs in your system tray (bottom-right corner):
   - Show/Hide window
   - Quit application
 
-**Tip**: You can close the window and the app keeps running in the tray!
+**Tips**: 
+- You can close the window and the app keeps running in the tray!
+- **PYW files are perfect for this** - they run silently without any windows
+- Add PYW to Windows startup folder to auto-launch on boot
+- The app remembers your settings and restores them when you reopen it
 
 ---
 
@@ -370,18 +441,47 @@ If you encounter issues:
 
 The app creates these files in the same folder:
 - `dimmer_profiles.json` - Your saved profiles
+- `dimmer_stats.json` - Your current dimmer state and settings
 - Settings are saved automatically
+
+### Available File Formats
+
+- **`ScreenDimmer.exe`** - Standalone executable (no Python needed)
+- **`dimmer.pyw`** - Python windowless script (no command window)
+- **`dimmer.py`** - Python script (shows command window)
 
 ---
 
 ## 🎯 Quick Start Checklist
 
-For first-time users:
+### For EXE Users (Easiest):
+- [ ] Download `ScreenDimmer.exe`
+- [ ] Double-click to run
+- [ ] Try enabling dimmer with Alt+D or the button
+- [ ] Adjust brightness slider
+- [ ] Try blue light filter
+- [ ] Minimize to system tray
+- [ ] Set up a schedule (optional)
+- [ ] Enable blinker (optional)
 
+### For PYW Users (Great for System Tray!):
 - [ ] Install Python 3.7+
 - [ ] Install PyQt5: `pip install PyQt5`
 - [ ] (Optional) Install keyboard: `pip install keyboard`
-- [ ] Run `dimmer.py`
+- [ ] Run `dimmer.pyw` - it runs silently in background!
+- [ ] Try enabling dimmer with Alt+D or the button
+- [ ] Adjust brightness slider
+- [ ] Try blue light filter
+- [ ] Minimize to system tray - perfect for keeping it running!
+- [ ] (Optional) Add to Windows startup for auto-launch
+- [ ] Set up a schedule (optional)
+- [ ] Enable blinker (optional)
+
+### For PY Users:
+- [ ] Install Python 3.7+
+- [ ] Install PyQt5: `pip install PyQt5`
+- [ ] (Optional) Install keyboard: `pip install keyboard`
+- [ ] Run `dimmer.py` from command line or double-click
 - [ ] Try enabling dimmer with Alt+D or the button
 - [ ] Adjust brightness slider
 - [ ] Try blue light filter
