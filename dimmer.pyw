@@ -788,13 +788,22 @@ class StateManager:
                 'current_dim': dimmer_control.current_dim,
                 'dimmer_active': dimmer_control.dimmer_active,
                 'blue_light_active': dimmer_control.blue_light_active,
-                'blue_intensity': dimmer_control.blue_intensity.value() if hasattr(dimmer_control, 'blue_intensity') else 50,
+                'blue_intensity': dimmer_control.blue_intensity.value() if hasattr(dimmer_control, 'blue_intensity') and isinstance(getattr(dimmer_control, 'blue_intensity', None), QSlider) else (getattr(dimmer_control, 'blue_intensity', 50) if isinstance(getattr(dimmer_control, 'blue_intensity', None), int) else 50),
                 
                 # 2nd Display settings
                 'second_display_enabled': dimmer_control.second_display_enabled,
                 'second_display_dim': dimmer_control.second_display_dim,
                 'second_display_blue_light': dimmer_control.second_display_blue_light,
-                'second_display_blue_intensity': dimmer_control.second_display_blue_intensity,
+                'second_display_blue_intensity': (
+                    dimmer_control.second_display_blue_intensity 
+                    if isinstance(dimmer_control.second_display_blue_intensity, int) 
+                    else (
+                        dimmer_control.second_display_blue_intensity_widget.value() 
+                        if hasattr(dimmer_control, 'second_display_blue_intensity_widget') 
+                           and dimmer_control.second_display_blue_intensity_widget
+                        else getattr(dimmer_control, 'second_display_blue_intensity', 50)
+                    )
+                ),
                 
                 # Schedule settings
                 'schedule_enabled': dimmer_control.schedule_enabled,
@@ -871,7 +880,8 @@ class DimmerControl(QWidget):
         self.second_display_enabled = False
         self.second_display_dim = Config.DEFAULT_DIM
         self.second_display_blue_light = False
-        self.second_display_blue_intensity = 50
+        self.second_display_blue_intensity = 50  # Value (will be overwritten with widget, then back to value)
+        self.second_display_blue_intensity_widget = None  # Widget reference (set in _create_second_display_tab)
         self.second_display_preset_buttons = []  # Will be populated in tab creation
         
         # Initialize UI and features
@@ -1584,14 +1594,16 @@ class DimmerControl(QWidget):
         intensity_label.setStyleSheet("font-size: 18px; font-weight: bold; min-width: 80px; padding: 5px;")
         intensity_layout.addWidget(intensity_label)
         
-        self.second_display_blue_intensity = QSlider(Qt.Horizontal)
-        self.second_display_blue_intensity.setRange(0, 100)
-        self.second_display_blue_intensity.setValue(50)
-        self.second_display_blue_intensity.valueChanged.connect(self._on_second_display_blue_intensity_changed)
-        self.second_display_blue_intensity.setEnabled(False)
-        self.second_display_blue_intensity.setMinimumHeight(30)
-        self.second_display_blue_intensity.setToolTip("Adjust blue light filter intensity for the second display (0-100%). Enable Blue Light Filter first.")
-        intensity_layout.addWidget(self.second_display_blue_intensity)
+        self.second_display_blue_intensity_widget = QSlider(Qt.Horizontal)
+        self.second_display_blue_intensity_widget.setRange(0, 100)
+        self.second_display_blue_intensity_widget.setValue(50)
+        self.second_display_blue_intensity_widget.valueChanged.connect(self._on_second_display_blue_intensity_changed)
+        self.second_display_blue_intensity_widget.setEnabled(False)
+        self.second_display_blue_intensity_widget.setMinimumHeight(30)
+        self.second_display_blue_intensity_widget.setToolTip("Adjust blue light filter intensity for the second display (0-100%). Enable Blue Light Filter first.")
+        intensity_layout.addWidget(self.second_display_blue_intensity_widget)
+        # Also keep reference in original name for compatibility
+        self.second_display_blue_intensity = self.second_display_blue_intensity_widget
         
         self.second_display_warmth_label = QLabel("50%")
         self.second_display_warmth_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #ff8000; min-width: 50px; padding: 5px;")
@@ -1676,10 +1688,18 @@ class DimmerControl(QWidget):
     
     def _update_tray_tooltip(self):
         """Update system tray tooltip with current dimming level"""
+        # Check if tray_icon exists (may not be initialized yet during startup)
+        if not hasattr(self, 'tray_icon') or self.tray_icon is None:
+            return
+        
         if self.dimmer_active:
             status_text = f"Active - {self.current_dim}%"
             if self.blue_light_active:
-                status_text += f" | Blue Light: {self.blue_intensity.value()}%"
+                # Check if blue_intensity widget exists and is a QSlider
+                if hasattr(self, 'blue_intensity') and isinstance(self.blue_intensity, QSlider):
+                    status_text += f" | Blue Light: {self.blue_intensity.value()}%"
+                elif isinstance(getattr(self, 'blue_intensity', None), int):
+                    status_text += f" | Blue Light: {self.blue_intensity}%"
             if self.second_display_enabled:
                 status_text += f" | 2nd Display: {self.second_display_dim}%"
         else:
@@ -1738,44 +1758,65 @@ class DimmerControl(QWidget):
             return
         
         try:
+            # Block signals during loading to prevent callbacks before initialization
+            # Make sure all widgets are created before loading state
             # Load main dimmer settings
             if 'current_dim' in state:
                 self.current_dim = state['current_dim']
                 if hasattr(self, 'dim_slider'):
+                    self.dim_slider.blockSignals(True)  # Block signals during loading
                     self.dim_slider.setValue(self.current_dim)
+                    self.dim_slider.blockSignals(False)  # Re-enable signals
                     self.dim_label.setText(f"{self.current_dim}%")
             
             if 'blue_light_active' in state:
                 self.blue_light_active = state['blue_light_active']
                 if hasattr(self, 'blue_check'):
+                    self.blue_check.blockSignals(True)
                     self.blue_check.setChecked(self.blue_light_active)
+                    self.blue_check.blockSignals(False)
             
             if 'blue_intensity' in state:
                 blue_intensity = state['blue_intensity']
-                if hasattr(self, 'blue_intensity'):
+                if hasattr(self, 'blue_intensity') and isinstance(self.blue_intensity, QSlider):
+                    self.blue_intensity.blockSignals(True)
                     self.blue_intensity.setValue(blue_intensity)
+                    self.blue_intensity.blockSignals(False)
                     self.blue_intensity.setEnabled(self.blue_light_active)
             
             # Load 2nd display settings
             if 'second_display_enabled' in state:
                 self.second_display_enabled = state['second_display_enabled']
                 if hasattr(self, 'second_display_check'):
+                    self.second_display_check.blockSignals(True)
                     self.second_display_check.setChecked(self.second_display_enabled)
+                    self.second_display_check.blockSignals(False)
             
             if 'second_display_dim' in state:
                 self.second_display_dim = state['second_display_dim']
                 if hasattr(self, 'second_display_slider'):
+                    self.second_display_slider.blockSignals(True)
                     self.second_display_slider.setValue(self.second_display_dim)
+                    self.second_display_slider.blockSignals(False)
             
             if 'second_display_blue_light' in state:
                 self.second_display_blue_light = state['second_display_blue_light']
                 if hasattr(self, 'second_display_blue_check'):
+                    self.second_display_blue_check.blockSignals(True)
                     self.second_display_blue_check.setChecked(self.second_display_blue_light)
+                    self.second_display_blue_check.blockSignals(False)
             
             if 'second_display_blue_intensity' in state:
-                self.second_display_blue_intensity = state['second_display_blue_intensity']
-                if hasattr(self, 'second_display_blue_intensity'):
-                    self.second_display_blue_intensity.setValue(self.second_display_blue_intensity)
+                blue_intensity_value = state['second_display_blue_intensity']
+                
+                # Store the integer value
+                self.second_display_blue_intensity = blue_intensity_value
+                
+                # Update widget if it exists (using separate widget reference)
+                if hasattr(self, 'second_display_blue_intensity_widget') and self.second_display_blue_intensity_widget:
+                    self.second_display_blue_intensity_widget.blockSignals(True)
+                    self.second_display_blue_intensity_widget.setValue(blue_intensity_value)
+                    self.second_display_blue_intensity_widget.blockSignals(False)
             
             # Load schedule settings
             if 'schedule_enabled' in state:
@@ -1812,22 +1853,30 @@ class DimmerControl(QWidget):
             if 'emoji_blink_enabled' in state:
                 self.emoji_blink_enabled = state['emoji_blink_enabled']
                 if hasattr(self, 'emoji_checkbox'):
+                    self.emoji_checkbox.blockSignals(True)
                     self.emoji_checkbox.setChecked(self.emoji_blink_enabled)
+                    self.emoji_checkbox.blockSignals(False)
             
             if 'text_blink_enabled' in state:
                 self.text_blink_enabled = state['text_blink_enabled']
                 if hasattr(self, 'text_checkbox'):
+                    self.text_checkbox.blockSignals(True)
                     self.text_checkbox.setChecked(self.text_blink_enabled)
+                    self.text_checkbox.blockSignals(False)
             
             if 'rain_interval_minutes' in state:
                 self.rain_interval_minutes = state['rain_interval_minutes']
-                if hasattr(self, 'interval_spinbox'):
-                    self.interval_spinbox.setValue(self.rain_interval_minutes)
+                if hasattr(self, 'rain_interval_spinbox') and isinstance(self.rain_interval_spinbox, QSpinBox):
+                    self.rain_interval_spinbox.blockSignals(True)
+                    self.rain_interval_spinbox.setValue(self.rain_interval_minutes)
+                    self.rain_interval_spinbox.blockSignals(False)
             
             if 'rain_duration_seconds' in state:
                 self.rain_duration_seconds = state['rain_duration_seconds']
-                if hasattr(self, 'duration_spinbox'):
-                    self.duration_spinbox.setValue(self.rain_duration_seconds)
+                if hasattr(self, 'rain_duration_spinbox') and isinstance(self.rain_duration_spinbox, QSpinBox):
+                    self.rain_duration_spinbox.blockSignals(True)
+                    self.rain_duration_spinbox.setValue(self.rain_duration_seconds)
+                    self.rain_duration_spinbox.blockSignals(False)
             
             # Apply dimmer state if it was active (delay to ensure UI is ready)
             if 'dimmer_active' in state and state['dimmer_active']:
@@ -1852,7 +1901,9 @@ class DimmerControl(QWidget):
                     QTimer.singleShot(500, lambda: self.blinker_control_btn.click())
             
         except Exception as e:
+            import traceback
             print(f"Error loading saved state: {e}")
+            print(f"Traceback: {traceback.format_exc()}")
     
     def _save_state(self):
         """Save current dimmer state to file"""
@@ -1946,9 +1997,11 @@ class DimmerControl(QWidget):
         # Enable/disable controls
         self.second_display_slider.setEnabled(self.second_display_enabled)
         self.second_display_blue_check.setEnabled(self.second_display_enabled)
-        self.second_display_blue_intensity.setEnabled(
-            self.second_display_enabled and self.second_display_blue_check.isChecked()
-        )
+        # Update widget if it exists
+        if hasattr(self, 'second_display_blue_intensity_widget') and self.second_display_blue_intensity_widget:
+            self.second_display_blue_intensity_widget.setEnabled(
+                self.second_display_enabled and self.second_display_blue_check.isChecked()
+            )
         
         # Enable/disable preset buttons
         for btn in self.second_display_preset_buttons:
@@ -1983,7 +2036,9 @@ class DimmerControl(QWidget):
     def _on_second_display_blue_light_changed(self, state: int):
         """Handle 2nd display blue light toggle"""
         self.second_display_blue_light = state == Qt.Checked
-        self.second_display_blue_intensity.setEnabled(self.second_display_blue_light)
+        # Update widget if it exists
+        if hasattr(self, 'second_display_blue_intensity_widget') and self.second_display_blue_intensity_widget:
+            self.second_display_blue_intensity_widget.setEnabled(self.second_display_blue_light)
         
         # Save state
         self._save_state()
